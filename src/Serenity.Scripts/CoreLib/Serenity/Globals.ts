@@ -179,7 +179,7 @@
         request?: any;
         service?: string;
         blockUI?: boolean;
-        onError?(response: TResponse): void;
+        onError?(response: TResponse): void | boolean;
         onSuccess?(response: TResponse): void;
         onCleanup?(): void;
     }

@@ -35,8 +35,11 @@ export function serviceCall<TResponse>(options: Serenity.ServiceOptions<TRespons
         }
 
         if (options.onError != null) {
-            options.onError(response);
-            return;
+            const shouldHandleError = options.onError(response);
+            
+            if (shouldHandleError != true) {
+                return;
+            }
         }
 
         ErrorHandling.showServiceError(response.Error);
