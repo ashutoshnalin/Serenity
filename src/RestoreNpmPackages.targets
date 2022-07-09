@@ -2,21 +2,18 @@
   <Target Name="ComputeNpmPackageMetadata">
     <ItemGroup>
       <NpmPackageFile>
+        <PNPMFile>$(AppData)\npm\node_modules\pnpm</PNPMFile>
         <StampFile>$([System.IO.Path]::Combine('%(RootDir)%(Directory)', 'node_modules', '.install-stamp'))</StampFile>
         <WorkingDir>%(RootDir)%(Directory)</WorkingDir>
         <NodeModulesDir>%(RootDir)%(Directory)\node_modules\</NodeModulesDir>
         <CommandPNPM>pnpm install</CommandPNPM>
         <CommandNPM>npm install</CommandNPM>
+        <CommandInstallPNPM>npm install -g pnpm</CommandInstallPNPM>
       </NpmPackageFile>
     </ItemGroup>
   </Target>
-  <Target Name="ComputeInstallPNPMMetadata">
-    <ItemGroup>
-      <CommandInstallPNPM>npm install -g pnpm</CommandInstallPNPM>
-  </ItemGroup>
-  </Target>
-  <Target Name="InstallPNPM" DependsOnTargets="ComputeInstallPNPMMetadata">
-    <Exec Command="%(NpmPackageFile.CommandPNPMInstall)"/>
+  <Target Name="InstallPNPM" DependsOnTargets="ComputeNpmPackageMetadata">
+    <Exec Command="%(NpmPackageFile.CommandInstallPNPM)" ContinueOnError="true" Condition="!Exists('%(NpmPackageFile.PNPMFile)')"/>
   </Target>
   <Target Name="NpmInstall" DependsOnTargets="ComputeNpmPackageMetadata;InstallPNPM" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)">
     <Exec Command="%(NpmPackageFile.CommandPNPM)" WorkingDirectory="%(WorkingDir)" 
