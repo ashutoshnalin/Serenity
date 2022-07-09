@@ -10,7 +10,15 @@
       </NpmPackageFile>
     </ItemGroup>
   </Target>
-  <Target Name="NpmInstall" DependsOnTargets="ComputeNpmPackageMetadata" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)">
+  <Target Name="ComputeInstallPNPMMetadata">
+    <ItemGroup>
+      <CommandInstallPNPM>npm install -g pnpm</CommandInstallPNPM>
+  </ItemGroup>
+  </Target>
+  <Target Name="InstallPNPM" DependsOnTargets="ComputeInstallPNPMMetadata">
+    <Exec Command="%(NpmPackageFile.CommandPNPMInstall)"/>
+  </Target>
+  <Target Name="NpmInstall" DependsOnTargets="ComputeNpmPackageMetadata;InstallPNPM" Inputs="@(NpmPackageFile)" Outputs="%(NpmPackageFile.StampFile)">
     <Exec Command="%(NpmPackageFile.CommandPNPM)" WorkingDirectory="%(WorkingDir)" 
           Condition="Exists('%(NodeModulesDir).pnpm\lock.yaml') Or !Exists('%(NodeModulesDir)')" />
     <Exec Command="%(NpmPackageFile.CommandNPM)" WorkingDirectory="%(WorkingDir)" ContinueOnError="true" 
