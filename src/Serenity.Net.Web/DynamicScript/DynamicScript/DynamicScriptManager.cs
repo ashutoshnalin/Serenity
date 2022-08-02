@@ -1,4 +1,6 @@
-﻿namespace Serenity.Web
+﻿using Microsoft.Extensions.Options;
+
+namespace Serenity.Web
 {
     public partial class DynamicScriptManager : IDynamicScriptManager
     {
@@ -9,18 +11,44 @@
         private readonly ITwoLevelCache cache;
         private readonly IPermissionService permissions;
         private readonly ITextLocalizer localizer;
-
+        private readonly ILocalTextRegistry textRegistry;
+        private readonly IOptions<LocalTextPackages> localTextPackages;
         private static readonly UTF8Encoding utf8Encoding = new(true);
 
-        public DynamicScriptManager(ITwoLevelCache cache, IPermissionService permissions, ITextLocalizer localizer)
+        public DynamicScriptManager(ITwoLevelCache cache, IPermissionService permissions, ITextLocalizer localizer, ILocalTextRegistry textRegistry, IOptions<LocalTextPackages> localTextPackages = null)
         {
             this.cache = cache ?? throw new ArgumentNullException(nameof(cache));
             this.permissions = permissions ?? throw new ArgumentNullException(nameof(permissions));
             this.localizer = localizer;
+            this.textRegistry = textRegistry ?? throw new ArgumentNullException(nameof(textRegistry));
+            this.localTextPackages = localTextPackages;
             registeredScripts = new ConcurrentDictionary<string, IDynamicScript>(StringComparer.OrdinalIgnoreCase);
             scriptLastChange = new ConcurrentDictionary<string, DateTime>();
             Register(new RegisteredScripts(this));
         }
+
+        static readonly HashSet<string> KnownCultureIdentifiers = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "de",
+            "de-DE",
+            "en",
+            "en-GB",
+            "en-UK",
+            "en-US",
+            "es",
+            "es-ES",
+            "fa-IR",
+            "fr",
+            "it-IT",
+            "pt-BR",
+            "pt-PT",
+            "ru",
+            "ru-RU",
+            "tr",
+            "tr-TR",
+            "vi-VN",
+            "zh-CN"
+        };
 
         public bool IsRegistered(string name)
         {
@@ -121,11 +149,12 @@
             if (script is ICacheSuffix ics)
                 cacheKey = cacheKey + ":" + ics.CacheSuffix;
 
-            ScriptContent factory() {
+            ScriptContent factory()
+            {
                 var content = utf8Encoding.GetBytes(script.GetScript());
                 return new ScriptContent(content, DateTime.UtcNow, content.Length > 4096);
             }
-            
+
             var groupKey = script.GroupKey;
 
             ScriptContent getOrCreate()
@@ -159,13 +188,13 @@
 
         public void CheckScriptRights(string name)
         {
-            if (registeredScripts.TryGetValue(name, out var script))
+            if (GetRegisteredScriptByName(name, out var script))
                 script.CheckRights(permissions, localizer);
         }
 
         public string GetScriptText(string name)
         {
-            if (!registeredScripts.TryGetValue(name, out var script))
+            if (!GetRegisteredScriptByName(name, out var script))
                 return null;
 
             var content = EnsureScriptContent(name, script).Content;
@@ -174,7 +203,7 @@
 
         public string GetScriptInclude(string name, string extension = ".js")
         {
-            if (!registeredScripts.TryGetValue(name, out var script))
+            if (!GetRegisteredScriptByName(name, out var script))
                 return name;
 
             var hash = PeekScriptHash(name, script);
@@ -182,9 +211,35 @@
             return name + extension + "?v=" + hash;
         }
 
+        private bool GetRegisteredScriptByName(string name, out IDynamicScript script)
+        {
+            if (registeredScripts.TryGetValue(name, out script))
+                return true;
+
+            if (!name.StartsWith("LocalText.", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var parts = name.Split('.');
+            if (parts.Length == 4 &&
+                localTextPackages?.Value.TryGetValue(parts[1], out var includes) == true &&
+                (KnownCultureIdentifiers.Contains(parts[2]) ||
+                    CultureInfo.GetCultures(CultureTypes.AllCultures).Any(x => string.Equals(x.Name, parts[2], StringComparison.OrdinalIgnoreCase))))
+            {
+                IfNotRegistered(name, () =>
+                {
+                    return new LocalTextScript(textRegistry, parts[1], includes, parts[2], string.Equals(parts[3], "Pending", StringComparison.OrdinalIgnoreCase));
+                });
+
+                if (registeredScripts.TryGetValue(name, out script))
+                    return true;
+            }
+
+            return false;
+        }
+
         public IScriptContent ReadScriptContent(string name)
         {
-            if (!registeredScripts.TryGetValue(name, out var script))
+            if (!GetRegisteredScriptByName(name, out var script))
                 return null;
 
             script.CheckRights(permissions, localizer);
