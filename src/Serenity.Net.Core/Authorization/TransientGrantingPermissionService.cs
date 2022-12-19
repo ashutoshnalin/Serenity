@@ -22,7 +22,7 @@ namespace Serenity.Web
         /// </summary>
         /// <param name="permissionService">Permission service to wrap with transient granting ability</param>
         /// <param name="requestContext">Request context</param>
-        public TransientGrantingPermissionService(IPermissionService permissionService, IHttpContextItemsAccessor requestContext = null)
+        public TransientGrantingPermissionService(IPermissionService permissionService, IHttpContextItemsAccessor? requestContext = null)
         {
             this.permissionService = permissionService ?? throw new ArgumentNullException(nameof(permissionService));
             this.requestContext = requestContext ?? throw new ArgumentNullException(nameof(requestContext));

@@ -10,6 +10,7 @@ namespace Serenity.Abstractions
         /// Returns true if user has specified permission
         /// </summary>
         /// <param name="permission">The permission key (e.g. Administration)</param>
-        bool HasPermission(string permission);
+        /// <remarks>Implementations should return false for null and empty strings.</remarks>
+        bool HasPermission(string? permission);
     }
 }

@@ -40,7 +40,7 @@
         /// <param name="errorCode">The error code.</param>
         /// <param name="arguments">The arguments.</param>
         /// <param name="errorMessage">The error message.</param>
-        public ValidationError(string errorCode, string arguments, string errorMessage) : base(errorMessage)
+        public ValidationError(string errorCode, string? arguments, string errorMessage) : base(errorMessage)
         {
             ErrorCode = errorCode;
             Arguments = arguments;
@@ -66,7 +66,7 @@
         /// <value>
         /// The error code.
         /// </value>
-        public string ErrorCode { get; set; }
+        public string? ErrorCode { get; set; }
 
         /// <summary>
         /// Gets or sets the arguments.
@@ -74,7 +74,7 @@
         /// <value>
         /// The arguments.
         /// </value>
-        public string Arguments { get; set; }
+        public string? Arguments { get; set; }
 
         /// <summary>
         /// By default all ValidationErrors are end user exceptions (e.g. message can be shown safely to the end user)

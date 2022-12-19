@@ -8,7 +8,7 @@ namespace Serenity.Web
     public class ImpersonatingUserAccessor : IUserAccessor, IImpersonator
     {
         private readonly IUserAccessor userContext;
-        private readonly IHttpContextItemsAccessor requestContext;
+        private readonly IHttpContextItemsAccessor itemsAccessor;
         private readonly ThreadLocal<Stack<ClaimsPrincipal>> impersonationStack = new();
 
         /// <summary>
@@ -20,13 +20,13 @@ namespace Serenity.Web
         public ImpersonatingUserAccessor(IUserAccessor userContext, IHttpContextItemsAccessor itemsAccessor)
         {
             this.userContext = userContext ?? throw new ArgumentNullException(nameof(userContext));
-            requestContext = itemsAccessor ?? throw new ArgumentNullException(nameof(itemsAccessor));
+            this.itemsAccessor = itemsAccessor ?? throw new ArgumentNullException(nameof(itemsAccessor));
         }
 
-        private Stack<ClaimsPrincipal> GetImpersonationStack(bool createIfNull)
+        private Stack<ClaimsPrincipal>? GetImpersonationStack(bool createIfNull)
         {
-            Stack<ClaimsPrincipal> stack;
-            var requestItems = requestContext.Items;
+            Stack<ClaimsPrincipal>? stack;
+            var requestItems = itemsAccessor.Items;
 
             if (requestItems != null)
             {
@@ -47,7 +47,7 @@ namespace Serenity.Web
         /// <summary>
         /// Return current user
         /// </summary>
-        public ClaimsPrincipal User
+        public ClaimsPrincipal? User
         {
             get
             {
@@ -69,7 +69,7 @@ namespace Serenity.Web
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
 
-            var impersonationStack = GetImpersonationStack(true);
+            var impersonationStack = GetImpersonationStack(true)!;
             impersonationStack.Push(user);
         }
 

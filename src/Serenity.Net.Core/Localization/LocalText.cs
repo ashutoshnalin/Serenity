@@ -58,7 +58,7 @@
         /// <summary>
         /// Returns the translation for current context
         /// </summary>   
-        public string ToString(ITextLocalizer localizer)
+        public string ToString(ITextLocalizer? localizer)
         {
             return localizer?.TryGet(Key) ?? Key;
         }

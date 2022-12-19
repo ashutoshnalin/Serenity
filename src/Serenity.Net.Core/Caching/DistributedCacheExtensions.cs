@@ -73,7 +73,7 @@ namespace Serenity
         /// </summary>
         /// <param name="cache">Cache</param>
         /// <param name="key">Key</param>
-        public static TValue GetAutoJson<TValue>(this IDistributedCache cache, string key)
+        public static TValue? GetAutoJson<TValue>(this IDistributedCache cache, string key)
             where TValue: class
         {
             if (cache == null)

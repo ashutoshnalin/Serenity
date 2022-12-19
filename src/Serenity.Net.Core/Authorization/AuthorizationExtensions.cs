@@ -8,7 +8,7 @@
         /// <summary>
         /// Returns true if user is logged in (authenticated).
         /// </summary>
-        public static bool IsLoggedIn(this IUserAccessor userAccessor)
+        public static bool IsLoggedIn(this IUserAccessor? userAccessor)
         {
             return userAccessor?.User?.Identity?.IsAuthenticated == true;
         }
@@ -16,7 +16,7 @@
         /// <summary>
         /// Returns true if user is logged in (authenticated).
         /// </summary>
-        public static bool IsLoggedIn(this ClaimsPrincipal user)
+        public static bool IsLoggedIn(this ClaimsPrincipal? user)
         {
             return user?.Identity?.IsAuthenticated == true;
         }
@@ -29,7 +29,7 @@
         /// <param name="permission">Permission key</param>
         /// <param name="localizer">Localizer</param>
         public static void ValidatePermission(this IPermissionService permissions,
-            string permission, ITextLocalizer localizer)
+            string? permission, ITextLocalizer? localizer)
         {
             if (permissions == null)
                 throw new ArgumentNullException(nameof(permissions));
@@ -43,7 +43,7 @@
         /// Checks if there is a currently logged user and throws a validation error with
         /// "NotLoggedIn" error code if not.
         /// </summary>
-        public static void ValidateLoggedIn(this IUserAccessor userAccessor, ITextLocalizer localizer)
+        public static void ValidateLoggedIn(this IUserAccessor? userAccessor, ITextLocalizer? localizer)
         {
             if (!IsLoggedIn(userAccessor))
                 throw new ValidationError("NotLoggedIn", null,
@@ -55,7 +55,7 @@
         /// </summary>
         /// <param name="identity"></param>
         /// <returns></returns>
-        public static string GetIdentifier(this ClaimsPrincipal identity)
+        public static string? GetIdentifier(this ClaimsPrincipal? identity)
         {
             if (identity == null)
                 return null;
@@ -69,14 +69,14 @@
         /// <param name="identity"></param>
         /// <param name="userRetrieveService">User retrieve service</param>
         /// <returns></returns>
-        public static TUserDefinition GetUserDefinition<TUserDefinition>(this ClaimsPrincipal identity, 
+        public static TUserDefinition? GetUserDefinition<TUserDefinition>(this ClaimsPrincipal? identity, 
             IUserRetrieveService userRetrieveService)
                 where TUserDefinition: class, IUserDefinition
         {
             if (!IsLoggedIn(identity))
                 return null;
 
-            return (TUserDefinition)userRetrieveService.ByUsername(identity.Identity.Name);
+            return (TUserDefinition)userRetrieveService.ByUsername(identity!.Identity.Name);
         }
 
         /// <summary>
@@ -85,13 +85,13 @@
         /// <param name="identity"></param>
         /// <param name="userRetrieveService">User retrieve service</param>
         /// <returns></returns>
-        public static IUserDefinition GetUserDefinition(this ClaimsPrincipal identity,
+        public static IUserDefinition? GetUserDefinition(this ClaimsPrincipal? identity,
             IUserRetrieveService userRetrieveService)
         {
             if (!IsLoggedIn(identity))
                 return null;
 
-            return userRetrieveService.ByUsername(identity.Identity.Name);
+            return userRetrieveService.ByUsername(identity!.Identity.Name);
         }
 
     }
